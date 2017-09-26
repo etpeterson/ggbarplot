@@ -1,0 +1,22 @@
+ggbarplot <- function(df, aesthetics, title, facet=NULL){
+  if (is.null(facet)){
+    aggstr <- paste(".~",toString(aesthetics$x))
+  }else{
+    aggstr <- paste(".~",toString(aesthetics$x),"+",facet)
+  }
+  dfmean <- aggregate(as.formula(aggstr), data=df, FUN=mean)
+  colnames(dfmean) <- paste("mean",colnames(dfmean),sep=".")
+  dfstd <- aggregate(as.formula(aggstr), data=df, FUN=sd)
+  colnames(dfstd) <- paste("std",colnames(dfstd),sep=".")
+  newdf <- cbind(dfmean,dfstd)
+  aes_bar <- aes_string(x=paste("mean",toString(aesthetics$x),sep="."), y=paste("mean",toString(aesthetics$y),sep="."))
+  aes_err <- aes_string(ymin=paste(paste(toString(aes_bar$y),"-std",sep=""),toString(aesthetics$y),sep="."), ymax=paste(paste(toString(aes_bar$y),"+std",sep=""),toString(aesthetics$y),sep="."))
+  gplt <- ggplot(newdf, aes_bar) + 
+    geom_bar(stat="identity") +
+    geom_errorbar(aes_err) +
+    ggtitle(title)
+  if (!is.null(facet)){
+    gplt <- gplt + facet_wrap(paste("mean",facet,sep="."))
+  }
+  return(gplt)
+}
